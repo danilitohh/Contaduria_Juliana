@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   getSessionSignature,
+  isSecureRequest,
   sessionCookieName,
   verifyCredentials,
 } from "@/lib/auth/session";
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
   response.cookies.set(sessionCookieName, sessionSignature, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecureRequest(request),
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

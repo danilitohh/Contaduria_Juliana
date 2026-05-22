@@ -1,5 +1,15 @@
 export const sessionCookieName = "nexo_admin_session";
 
+export function isSecureRequest(request: Request) {
+  const forwardedProtocol = request.headers.get("x-forwarded-proto");
+
+  if (forwardedProtocol) {
+    return forwardedProtocol.split(",")[0]?.trim() === "https";
+  }
+
+  return new URL(request.url).protocol === "https:";
+}
+
 export function getAdminEmail() {
   return process.env.NEXO_ADMIN_EMAIL ?? "julianaz101@hotmail.com";
 }
