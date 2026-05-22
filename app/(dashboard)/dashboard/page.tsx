@@ -25,6 +25,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/cotizaciones"
+            prefetch={false}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
           >
             <FileText className="h-4 w-4" />
@@ -32,6 +33,7 @@ export default function DashboardPage() {
           </Link>
           <Link
             href="/pos"
+            prefetch={false}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-teal-800"
           >
             <ReceiptText className="h-4 w-4" />
@@ -151,6 +153,7 @@ export default function DashboardPage() {
               <Link
                 key={product.id}
                 href="/productos"
+                prefetch={false}
                 className="flex items-center justify-between gap-3 rounded-md border border-slate-100 p-3 hover:bg-slate-50"
               >
                 <div>

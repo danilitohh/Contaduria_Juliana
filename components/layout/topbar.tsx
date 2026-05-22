@@ -33,6 +33,7 @@ export function Topbar() {
           </button>
           <Link
             href="/configuracion"
+            prefetch={false}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition hover:bg-slate-100"
             aria-label="Configuracion"
           >
@@ -40,6 +41,7 @@ export function Topbar() {
           </Link>
           <Link
             href="/perfil"
+            prefetch={false}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50"
             aria-label="Perfil"
           >
@@ -54,6 +56,7 @@ export function Topbar() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className="flex shrink-0 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700"
             >
               <Icon className="h-4 w-4" />

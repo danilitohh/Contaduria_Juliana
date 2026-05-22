@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  getSessionToken,
+  getSessionSignature,
   sessionCookieName,
   verifyCredentials,
 } from "@/lib/auth/session";
@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const token = getSessionToken();
+  const sessionSignature = await getSessionSignature();
 
-  if (!token) {
+  if (!sessionSignature) {
     return NextResponse.redirect(new URL("/login?error=config", request.url), 303);
   }
 
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(new URL("/dashboard", request.url), 303);
-  response.cookies.set(sessionCookieName, token, {
+  response.cookies.set(sessionCookieName, sessionSignature, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
