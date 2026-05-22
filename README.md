@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nexo Admin
 
-## Getting Started
+Plataforma web administrativa original construida con Next.js App Router, TypeScript, Tailwind CSS, datos mock y preparacion para Supabase.
 
-First, run the development server:
+## Ejecutar
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre `http://localhost:3000`. La app redirige a `/dashboard`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack incluido
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js App Router, React 19 y TypeScript.
+- Tailwind CSS.
+- Supabase JS preparado en `lib/supabase`.
+- React Hook Form y Zod en formularios.
+- Recharts para dashboard y reportes.
+- jsPDF para cotizacion, factura interna, recibo y nomina.
+- Lucide React para iconografia.
 
-## Learn More
+## Estructura
 
-To learn more about Next.js, take a look at the following resources:
+- `app/(auth)`: login y registro demo.
+- `app/(dashboard)`: rutas privadas del ERP/CRM.
+- `components/layout`: sidebar, topbar y shell.
+- `components/modules`: pantallas de modulos, POS, reportes y configuracion.
+- `components/tables`, `components/charts`, `components/ui`: reutilizables.
+- `services/mock-data.ts`: datos demo.
+- `services/modules.tsx`: configuracion de tablas, filtros y formularios.
+- `lib/calculations`: calculos de documentos, cartera, inventario y caja.
+- `lib/pdf`: plantillas PDF originales.
+- `db/schema.sql`: tablas PostgreSQL y politicas RLS.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Crea un proyecto en Supabase.
+2. Ejecuta `db/schema.sql` en SQL Editor.
+3. Copia `.env.example` a `.env.local`.
+4. Completa `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+5. Cuando Auth este conectado a los formularios reales, cambia `NEXO_REQUIRE_AUTH=true`.
 
-## Deploy on Vercel
+El esquema usa `user_id` en cada tabla y RLS para que cada usuario solo vea y modifique sus propios datos.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Pendiente para produccion
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Reemplazar mocks por repositorios Supabase y Server Actions.
+- Conectar login, registro, logout y recuperacion de contrasena con Supabase Auth.
+- Implementar permisos por rol y auditoria.
+- Persistir CRUD, items de documentos, pagos, inventario y caja en transacciones.
+- Subir comprobantes y logos a Supabase Storage.
+- Agregar pruebas unitarias, integracion y e2e.
+- Validar consecutivos concurrentes en base de datos.
+- Ajustar seguridad, backups, monitoreo y observabilidad.
+
+## Facturacion electronica Colombia
+
+Las facturas actuales son comprobantes internos. Para facturacion electronica real ante la DIAN falta integrar un proveedor tecnologico autorizado o implementar el flujo normativo completo: habilitacion, resoluciones, numeracion, CUFE/CUDE, firma digital, XML UBL, envio y validacion DIAN, acuses, notas credito/debito, contingencia y conservacion documental.
