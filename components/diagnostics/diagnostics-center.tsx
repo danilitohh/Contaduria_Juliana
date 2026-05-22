@@ -111,7 +111,13 @@ function installDiagnosticsListeners() {
   });
 }
 
-export function DiagnosticsCenter() {
+export function DiagnosticsCenter({
+  label,
+  variant = "light",
+}: {
+  label?: string;
+  variant?: "light" | "dark";
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -161,11 +167,18 @@ export function DiagnosticsCenter() {
   return (
     <div className="relative">
       <button
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition hover:bg-slate-100"
+        className={cn(
+          "relative inline-flex h-9 items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition",
+          label ? "w-auto" : "w-9",
+          variant === "dark"
+            ? "border border-white/10 bg-white/10 text-white hover:bg-white/15"
+            : "text-slate-700 hover:bg-slate-100",
+        )}
         aria-label="Centro de diagnostico"
         onClick={() => setOpen((value) => !value)}
       >
         <Bell className="h-5 w-5" />
+        {label ? <span>{label}</span> : null}
         {errorCount > 0 ? (
           <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
             {Math.min(errorCount, 9)}
