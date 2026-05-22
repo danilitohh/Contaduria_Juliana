@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Menu, Search, Settings, UserRound } from "lucide-react";
-import { DiagnosticsCenter } from "@/components/diagnostics/diagnostics-center";
 import { Input } from "@/components/ui/field";
 import { companySettings, profile } from "@/services/mock-data";
 import { mainNavigation } from "@/services/modules";
@@ -26,7 +25,6 @@ export function Topbar() {
             <p className="text-sm font-semibold text-slate-900">{companySettings.nombre_empresa}</p>
             <p className="text-xs text-slate-500">{profile.nombre}</p>
           </div>
-          <DiagnosticsCenter />
           <Link
             href="/configuracion"
             prefetch={false}

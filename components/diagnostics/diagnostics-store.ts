@@ -50,7 +50,7 @@ function emitChange() {
   listeners.forEach((listener) => listener());
 }
 
-function compactValue(value: unknown) {
+export function compactValue(value: unknown) {
   if (value instanceof Error) {
     return `${value.name}: ${value.message}\n${value.stack ?? ""}`.trim();
   }

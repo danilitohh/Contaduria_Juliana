@@ -18,6 +18,7 @@ import {
   addDiagnostic,
   buildDiagnosticsReport,
   clearDiagnostics,
+  compactValue,
   getDiagnosticsSnapshot,
   subscribeDiagnostics,
   type DiagnosticEntry,
@@ -66,13 +67,64 @@ function installDiagnosticsListeners() {
     addConsoleDiagnostic("warning", "console.warn", values);
   };
 
-  window.addEventListener("error", (event) => {
-    addDiagnostic({
-      level: "error",
-      title: "Error de JavaScript",
-      detail: `${event.message}\n${event.filename}:${event.lineno}:${event.colno}`,
-    });
-  });
+  const originalFetch = window.fetch.bind(window);
+  const monitoredFetch: typeof window.fetch = async (input, init) => {
+    const method = init?.method ?? (input instanceof Request ? input.method : "GET");
+    const url = input instanceof Request ? input.url : input.toString();
+
+    try {
+      const response = await originalFetch(input, init);
+
+      if (!response.ok) {
+        addDiagnostic({
+          level: response.status >= 500 ? "error" : "warning",
+          title: `Solicitud HTTP ${response.status}`,
+          detail: `${method} ${url}\n${response.statusText}`,
+        });
+      }
+
+      return response;
+    } catch (error) {
+      addDiagnostic({
+        level: "error",
+        title: "Fallo de red",
+        detail: `${method} ${url}\n${compactValue(error)}`,
+      });
+      throw error;
+    }
+  };
+
+  window.fetch = monitoredFetch;
+
+  window.addEventListener(
+    "error",
+    (event) => {
+      if (event.target instanceof HTMLElement) {
+        const source =
+          event.target instanceof HTMLImageElement
+            ? event.target.currentSrc || event.target.src
+            : event.target instanceof HTMLScriptElement
+              ? event.target.src
+              : event.target instanceof HTMLLinkElement
+                ? event.target.href
+                : event.target.outerHTML.slice(0, 160);
+
+        addDiagnostic({
+          level: "warning",
+          title: "Recurso no cargado",
+          detail: `${event.target.tagName.toLowerCase()} ${source}`,
+        });
+        return;
+      }
+
+      addDiagnostic({
+        level: "error",
+        title: "Error de JavaScript",
+        detail: `${event.message}\n${event.filename}:${event.lineno}:${event.colno}`,
+      });
+    },
+    true,
+  );
 
   window.addEventListener("unhandledrejection", (event) => {
     const reason = event.reason instanceof Error ? event.reason.stack ?? event.reason.message : String(event.reason);
@@ -113,9 +165,11 @@ function installDiagnosticsListeners() {
 
 export function DiagnosticsCenter({
   label,
+  panelPlacement = "below",
   variant = "light",
 }: {
   label?: string;
+  panelPlacement?: "above" | "below";
   variant?: "light" | "dark";
 }) {
   const pathname = usePathname();
@@ -187,7 +241,12 @@ export function DiagnosticsCenter({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[min(92vw,520px)] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
+        <div
+          className={cn(
+            "absolute right-0 z-50 w-[min(92vw,520px)] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl",
+            panelPlacement === "above" ? "bottom-12" : "top-12",
+          )}
+        >
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 p-4">
             <div>
               <div className="flex items-center gap-2">

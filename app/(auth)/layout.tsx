@@ -1,12 +1,8 @@
 import type { ReactNode } from "react";
-import { DiagnosticsCenter } from "@/components/diagnostics/diagnostics-center";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main className="grid min-h-screen bg-slate-950 text-white lg:grid-cols-[1fr_1.1fr]">
-      <div className="fixed bottom-5 right-5 z-50">
-        <DiagnosticsCenter label="Diagnostico" variant="dark" />
-      </div>
       <section className="flex flex-col justify-between bg-slate-950 p-8">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-teal-400 text-slate-950">

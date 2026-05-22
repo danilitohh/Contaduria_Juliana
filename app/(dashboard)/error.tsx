@@ -27,7 +27,7 @@ export default function DashboardError({
         <div>
           <h1 className="text-lg font-semibold">Algo fallo en esta pantalla</h1>
           <p className="mt-2 text-sm">
-            Abre el boton de diagnostico en la parte superior, copia el reporte y compartelo para revisar la causa.
+            Abre el boton flotante de diagnostico, copia el reporte y compartelo para revisar la causa.
           </p>
           <Button className="mt-4" variant="danger" onClick={reset}>
             <RefreshCcw className="h-4 w-4" />
