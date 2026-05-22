@@ -33,7 +33,7 @@ export const profile: Profile = {
   id: "profile-1",
   user_id: userId,
   nombre: "Juliana Herrera",
-  email: "admin@nexoadmin.local",
+  email: "julianaz101@hotmail.com",
   rol: "propietario",
   created_at: now,
   updated_at: now,

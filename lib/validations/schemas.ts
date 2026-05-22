@@ -73,6 +73,17 @@ export const companySchema = z.object({
   color_marca: z.string().min(4),
 });
 
+export const profileSchema = z.object({
+  nombre: requiredText,
+  email: z.string().email(),
+  rol: z.enum(["propietario", "administrador", "operador"]),
+});
+
+export const appSettingsSchema = z.object({
+  company: companySchema,
+  profile: profileSchema,
+});
+
 export const employeeSchema = z.object({
   nombre: requiredText,
   documento: requiredText,
@@ -88,3 +99,4 @@ export const employeeSchema = z.object({
 export type ClientFormValues = z.infer<typeof clientSchema>;
 export type ProductFormValues = z.infer<typeof productSchema>;
 export type CompanyFormValues = z.infer<typeof companySchema>;
+export type AppSettingsFormValues = z.infer<typeof appSettingsSchema>;

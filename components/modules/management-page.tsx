@@ -15,7 +15,8 @@ import {
   downloadQuotePdf,
   downloadReceiptPdf,
 } from "@/lib/pdf/templates";
-import { companySettings, employees } from "@/services/mock-data";
+import { useAppSettings } from "@/hooks/use-app-settings";
+import { employees } from "@/services/mock-data";
 import { moduleRegistry, type FormField, type ModuleKey } from "@/services/modules";
 import type { Invoice, Payment, Payroll, Quote } from "@/types/business";
 
@@ -72,6 +73,7 @@ function renderField(field: FormField, register: UseFormRegister<FieldValues>) {
 
 export function ManagementPage({ moduleKey, compact = false }: ManagementPageProps) {
   const config = moduleRegistry[moduleKey];
+  const { company } = useAppSettings();
   const [rows, setRows] = useState<Array<Record<string, unknown>>>(() =>
     config.rows.map((row) => row as Record<string, unknown>),
   );
@@ -129,13 +131,13 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
   }
 
   function downloadPdf(row: Record<string, unknown>) {
-    if (config.pdf === "quote") downloadQuotePdf(companySettings, row as unknown as Quote);
-    if (config.pdf === "invoice") downloadInvoicePdf(companySettings, row as unknown as Invoice);
-    if (config.pdf === "receipt") downloadReceiptPdf(companySettings, row as unknown as Payment);
+    if (config.pdf === "quote") downloadQuotePdf(company, row as unknown as Quote);
+    if (config.pdf === "invoice") downloadInvoicePdf(company, row as unknown as Invoice);
+    if (config.pdf === "receipt") downloadReceiptPdf(company, row as unknown as Payment);
     if (config.pdf === "payroll") {
       const payroll = row as unknown as Payroll;
       const employee = employees.find((item) => item.id === payroll.empleado_id);
-      downloadPayrollPdf(companySettings, payroll, employee);
+      downloadPayrollPdf(company, payroll, employee);
     }
   }
 

@@ -2,10 +2,12 @@
 
 import { Menu, Search, Settings, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/field";
-import { companySettings, profile } from "@/services/mock-data";
+import { useAppSettings } from "@/hooks/use-app-settings";
 import { mainNavigation } from "@/services/modules";
 
 export function Topbar() {
+  const { company, profile } = useAppSettings();
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="flex min-h-16 items-center gap-3 px-4 lg:px-6">
@@ -21,7 +23,7 @@ export function Topbar() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-semibold text-slate-900">{companySettings.nombre_empresa}</p>
+            <p className="text-sm font-semibold text-slate-900">{company.nombre_empresa}</p>
             <p className="text-xs text-slate-500">{profile.nombre}</p>
           </div>
           <a
