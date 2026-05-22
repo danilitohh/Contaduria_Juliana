@@ -40,7 +40,18 @@ Abre `http://localhost:3000`. La app redirige a `/dashboard`.
 2. Ejecuta `db/schema.sql` en SQL Editor.
 3. Copia `.env.example` a `.env.local`.
 4. Completa `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-5. Cuando Auth este conectado a los formularios reales, cambia `NEXO_REQUIRE_AUTH=true`.
+
+## Acceso privado
+
+La app esta configurada para una sola cuenta administrativa. Define estas variables en `.env.local` y en tu proveedor de despliegue:
+
+```bash
+NEXO_ADMIN_EMAIL=
+NEXO_ADMIN_PASSWORD=
+NEXO_SESSION_TOKEN=
+```
+
+`NEXO_SESSION_TOKEN` debe ser un valor largo y aleatorio. El registro esta deshabilitado y `/register` no crea usuarios.
 
 El esquema usa `user_id` en cada tabla y RLS para que cada usuario solo vea y modifique sus propios datos.
 

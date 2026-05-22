@@ -45,7 +45,7 @@ export function Sidebar() {
 
         <div className="border-t border-white/10 p-4">
           <Link
-            href="/login"
+            href="/api/auth/logout"
             className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
           >
             <LogOut className="h-4 w-4" />

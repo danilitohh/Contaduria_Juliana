@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { hasValidSession, sessionCookieName } from "@/lib/auth/session";
 
 const privateRoutes = [
   "/dashboard",
@@ -20,20 +21,19 @@ const privateRoutes = [
   "/perfil",
 ];
 
-export function proxy(request: NextRequest) {
-  const requiresAuth = process.env.NEXO_REQUIRE_AUTH === "true";
-  const isPrivate = privateRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
+const authRoutes = ["/login", "/register"];
 
-  if (!requiresAuth || !isPrivate) {
-    return NextResponse.next();
+export function proxy(request: NextRequest) {
+  const isPrivate = privateRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
+  const isAuthenticated = hasValidSession(request.cookies.get(sessionCookieName)?.value);
+
+  if (isPrivate && !isAuthenticated) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const hasSupabaseCookie = request.cookies
-    .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
-
-  if (!hasSupabaseCookie) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (isAuthRoute && isAuthenticated) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
@@ -58,5 +58,7 @@ export const config = {
     "/nomina/:path*",
     "/configuracion/:path*",
     "/perfil/:path*",
+    "/login",
+    "/register",
   ],
 };
