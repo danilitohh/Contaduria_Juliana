@@ -171,7 +171,7 @@ export function DiagnosticsCenter({
           "relative inline-flex h-9 items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition",
           label ? "w-auto" : "w-9",
           variant === "dark"
-            ? "border border-white/10 bg-white/10 text-white hover:bg-white/15"
+            ? "border border-teal-800 bg-teal-700 text-white shadow-lg shadow-teal-950/20 hover:bg-teal-800"
             : "text-slate-700 hover:bg-slate-100",
         )}
         aria-label="Centro de diagnostico"
