@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Menu, Search, Settings, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/field";
 import { companySettings, profile } from "@/services/mock-data";
@@ -25,37 +24,34 @@ export function Topbar() {
             <p className="text-sm font-semibold text-slate-900">{companySettings.nombre_empresa}</p>
             <p className="text-xs text-slate-500">{profile.nombre}</p>
           </div>
-          <Link
+          <a
             href="/configuracion"
-            prefetch={false}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition hover:bg-slate-100"
             aria-label="Configuracion"
           >
             <Settings className="h-5 w-5" />
-          </Link>
-          <Link
+          </a>
+          <a
             href="/perfil"
-            prefetch={false}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50"
             aria-label="Perfil"
           >
             <UserRound className="h-5 w-5" />
-          </Link>
+          </a>
         </div>
       </div>
       <nav className="flex gap-2 overflow-x-auto border-t border-slate-100 px-4 py-2 lg:hidden">
         {mainNavigation.map((item) => {
           const Icon = item.icon;
           return (
-            <Link
+            <a
               key={item.href}
               href={item.href}
-              prefetch={false}
               className="flex shrink-0 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700"
             >
               <Icon className="h-4 w-4" />
               {item.label}
-            </Link>
+            </a>
           );
         })}
       </nav>

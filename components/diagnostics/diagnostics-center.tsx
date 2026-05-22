@@ -27,6 +27,7 @@ import {
 import { cn, formatDate } from "@/lib/utils";
 
 let listenersInstalled = false;
+const previousPathKey = "nexo_previous_path";
 
 function levelIcon(level: DiagnosticLevel) {
   if (level === "error") return AlertTriangle;
@@ -71,9 +72,19 @@ function installDiagnosticsListeners() {
   const monitoredFetch: typeof window.fetch = async (input, init) => {
     const method = init?.method ?? (input instanceof Request ? input.method : "GET");
     const url = input instanceof Request ? input.url : input.toString();
+    const requestedUrl = new URL(url, window.location.href);
 
     try {
       const response = await originalFetch(input, init);
+      const responseUrl = response.url ? new URL(response.url, window.location.href) : null;
+
+      if (response.redirected && responseUrl && responseUrl.pathname !== requestedUrl.pathname) {
+        addDiagnostic({
+          level: responseUrl.pathname === "/login" ? "warning" : "process",
+          title: "Redireccion detectada",
+          detail: `${method} ${requestedUrl.pathname} -> ${responseUrl.pathname}`,
+        });
+      }
 
       if (!response.ok) {
         addDiagnostic({
@@ -182,6 +193,19 @@ export function DiagnosticsCenter({
   }, []);
 
   useEffect(() => {
+    const previousPath = window.sessionStorage.getItem(previousPathKey);
+
+    if (pathname === "/login" && previousPath && !["/login", "/register"].includes(previousPath)) {
+      addDiagnostic({
+        level: "warning",
+        title: "La sesion volvio al login",
+        detail: `Ruta anterior: ${previousPath}`,
+        route: pathname,
+      });
+    }
+
+    window.sessionStorage.setItem(previousPathKey, pathname);
+
     window.setTimeout(() => {
       addDiagnostic({
         level: "process",

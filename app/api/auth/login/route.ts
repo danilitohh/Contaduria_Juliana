@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   hasAuthConfig,
   isSecureRequest,
+  legacySessionCookieNames,
   sessionCookieName,
   sessionCookieValue,
   verifyCredentials,
@@ -21,10 +22,22 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(new URL("/dashboard", request.url), 303);
+  const secure = isSecureRequest(request);
+
+  legacySessionCookieNames.forEach((cookieName) => {
+    response.cookies.set(cookieName, "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure,
+      path: "/",
+      maxAge: 0,
+    });
+  });
+
   response.cookies.set(sessionCookieName, sessionCookieValue, {
     httpOnly: true,
     sameSite: "lax",
-    secure: isSecureRequest(request),
+    secure,
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

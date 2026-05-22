@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,10 +27,9 @@ export function Sidebar() {
             const Icon = item.icon;
 
             return (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
-                prefetch={false}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white",
                   active && "bg-teal-500 text-slate-950 hover:bg-teal-500 hover:text-slate-950",
@@ -39,19 +37,19 @@ export function Sidebar() {
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
-              </Link>
+              </a>
             );
           })}
         </nav>
 
         <div className="border-t border-white/10 p-4">
-          <Link
+          <a
             href="/api/auth/logout"
             className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15"
           >
             <LogOut className="h-4 w-4" />
             Salir
-          </Link>
+          </a>
         </div>
       </div>
     </aside>

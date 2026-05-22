@@ -1,5 +1,6 @@
-export const sessionCookieName = "nexo_admin_session";
+export const sessionCookieName = "nexo_admin_session_v2";
 export const sessionCookieValue = "active";
+export const legacySessionCookieNames = ["nexo_admin_session"];
 
 export function isSecureRequest(request: Request) {
   const forwardedProtocol = request.headers.get("x-forwarded-proto");
