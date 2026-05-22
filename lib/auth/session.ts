@@ -1,4 +1,5 @@
 export const sessionCookieName = "nexo_admin_session";
+export const sessionCookieValue = "active";
 
 export function isSecureRequest(request: Request) {
   const forwardedProtocol = request.headers.get("x-forwarded-proto");
@@ -18,28 +19,12 @@ function getAdminPassword() {
   return process.env.NEXO_ADMIN_PASSWORD;
 }
 
-async function sha256(value: string) {
-  const bytes = new TextEncoder().encode(value);
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-
-  return Array.from(new Uint8Array(hash))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+export function hasAuthConfig() {
+  return Boolean(getAdminEmail().trim() && getAdminPassword());
 }
 
-export async function getSessionSignature() {
-  const password = getAdminPassword();
-
-  if (!password) {
-    return null;
-  }
-
-  return sha256(`${getAdminEmail().trim().toLowerCase()}:${password}`);
-}
-
-export async function hasValidSession(cookieValue?: string) {
-  const expectedSignature = await getSessionSignature();
-  return Boolean(expectedSignature && cookieValue && cookieValue === expectedSignature);
+export function hasValidSession(cookieValue?: string) {
+  return cookieValue === sessionCookieValue;
 }
 
 export function verifyCredentials(email: string, password: string) {

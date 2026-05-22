@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  getSessionSignature,
+  hasAuthConfig,
   isSecureRequest,
   sessionCookieName,
+  sessionCookieValue,
   verifyCredentials,
 } from "@/lib/auth/session";
 
@@ -10,9 +11,8 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const sessionSignature = await getSessionSignature();
 
-  if (!sessionSignature) {
+  if (!hasAuthConfig()) {
     return NextResponse.redirect(new URL("/login?error=config", request.url), 303);
   }
 
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(new URL("/dashboard", request.url), 303);
-  response.cookies.set(sessionCookieName, sessionSignature, {
+  response.cookies.set(sessionCookieName, sessionCookieValue, {
     httpOnly: true,
     sameSite: "lax",
     secure: isSecureRequest(request),

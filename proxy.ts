@@ -23,10 +23,10 @@ const privateRoutes = [
 
 const authRoutes = ["/login", "/register"];
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const isPrivate = privateRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
   const isAuthRoute = authRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
-  const isAuthenticated = await hasValidSession(request.cookies.get(sessionCookieName)?.value);
+  const isAuthenticated = hasValidSession(request.cookies.get(sessionCookieName)?.value);
 
   if (isPrivate && !isAuthenticated) {
     return NextResponse.redirect(new URL("/login", request.url));
