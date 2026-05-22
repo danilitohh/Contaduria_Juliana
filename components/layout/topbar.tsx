@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Menu, Search, Settings, UserRound } from "lucide-react";
+import { Menu, Search, Settings, UserRound } from "lucide-react";
+import { DiagnosticsCenter } from "@/components/diagnostics/diagnostics-center";
 import { Input } from "@/components/ui/field";
 import { companySettings, profile } from "@/services/mock-data";
 import { mainNavigation } from "@/services/modules";
@@ -25,12 +26,7 @@ export function Topbar() {
             <p className="text-sm font-semibold text-slate-900">{companySettings.nombre_empresa}</p>
             <p className="text-xs text-slate-500">{profile.nombre}</p>
           </div>
-          <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition hover:bg-slate-100"
-            aria-label="Alertas"
-          >
-            <Bell className="h-5 w-5" />
-          </button>
+          <DiagnosticsCenter />
           <Link
             href="/configuracion"
             prefetch={false}
