@@ -157,13 +157,51 @@ export function CompanySettingsPage() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-slate-950">Datos de empresa</h2>
+              <h2 className="font-semibold text-slate-950">Identidad tributaria</h2>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2 text-sm font-medium text-slate-700">
-                Nombre empresa
+                NIT
+                <Input {...form.register("company.nit")} />
+                {errorText(errors.company?.nit?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Nombre
                 <Input {...form.register("company.nombre_empresa")} />
                 {errorText(errors.company?.nombre_empresa?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Correo
+                <Input type="email" {...form.register("company.email")} />
+                {errorText(errors.company?.email?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Razon social
+                <Input {...form.register("company.razon_social")} />
+                {errorText(errors.company?.razon_social?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Tipo de razon social
+                <Select {...form.register("company.tipo_razon_social")}>
+                  <option value="Sociedad por acciones simplificada">Sociedad por acciones simplificada</option>
+                  <option value="Sociedad limitada">Sociedad limitada</option>
+                  <option value="Sociedad anonima">Sociedad anonima</option>
+                  <option value="Persona natural">Persona natural</option>
+                  <option value="Entidad sin animo de lucro">Entidad sin animo de lucro</option>
+                  <option value="Otra">Otra</option>
+                </Select>
+                {errorText(errors.company?.tipo_razon_social?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700">
+                Tipo de identificacion
+                <Select {...form.register("company.tipo_identificacion")}>
+                  <option value="NIT">NIT</option>
+                  <option value="CC">Cedula de ciudadania</option>
+                  <option value="CE">Cedula de extranjeria</option>
+                  <option value="PA">Pasaporte</option>
+                  <option value="Otro">Otro</option>
+                </Select>
+                {errorText(errors.company?.tipo_identificacion?.message)}
               </label>
               <label className="space-y-2 text-sm font-medium text-slate-700">
                 Identificacion
@@ -171,10 +209,33 @@ export function CompanySettingsPage() {
                 {errorText(errors.company?.identificacion?.message)}
               </label>
               <label className="space-y-2 text-sm font-medium text-slate-700">
-                Correo
-                <Input type="email" {...form.register("company.email")} />
-                {errorText(errors.company?.email?.message)}
+                Digito de verificacion
+                <Input inputMode="numeric" maxLength={1} {...form.register("company.digito_verificacion")} />
+                {errorText(errors.company?.digito_verificacion?.message)}
               </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+                Actividad economica
+                <Input {...form.register("company.actividad_economica")} />
+                {errorText(errors.company?.actividad_economica?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+                Responsabilidades fiscales
+                <Textarea {...form.register("company.responsabilidades_fiscales")} />
+                {errorText(errors.company?.responsabilidades_fiscales?.message)}
+              </label>
+              <label className="space-y-2 text-sm font-medium text-slate-700 md:col-span-2">
+                Tributos
+                <Textarea {...form.register("company.tributos")} />
+                {errorText(errors.company?.tributos?.message)}
+              </label>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold text-slate-950">Datos operativos</h2>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2 text-sm font-medium text-slate-700">
                 Telefono
                 <Input {...form.register("company.telefono")} />

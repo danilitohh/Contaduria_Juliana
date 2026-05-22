@@ -57,12 +57,20 @@ export const paymentSchema = z.object({
 
 export const companySchema = z.object({
   nombre_empresa: requiredText,
+  nit: z.string().min(4, "Ingresa un NIT valido"),
+  razon_social: requiredText,
+  tipo_razon_social: requiredText,
+  tipo_identificacion: z.string().min(1, "Selecciona un tipo"),
   identificacion: requiredText,
+  digito_verificacion: z.string().regex(/^\d$/, "Debe ser un digito"),
   email: z.string().email(),
   telefono: z.string().min(7),
   direccion: requiredText,
   ciudad: requiredText,
   pais: requiredText,
+  actividad_economica: requiredText,
+  responsabilidades_fiscales: requiredText,
+  tributos: requiredText,
   moneda: z.string().min(3),
   impuesto_default: z.coerce.number().min(0).max(100),
   prefijo_factura: z.string().min(1),
@@ -71,6 +79,20 @@ export const companySchema = z.object({
   consecutivo_cotizacion: z.coerce.number().min(1),
   terminos_default: z.string().min(5),
   color_marca: z.string().min(4),
+});
+
+export const companyRegistrationSchema = companySchema.pick({
+  nit: true,
+  nombre_empresa: true,
+  email: true,
+  razon_social: true,
+  tipo_razon_social: true,
+  tipo_identificacion: true,
+  identificacion: true,
+  digito_verificacion: true,
+  actividad_economica: true,
+  responsabilidades_fiscales: true,
+  tributos: true,
 });
 
 export const profileSchema = z.object({
@@ -99,4 +121,5 @@ export const employeeSchema = z.object({
 export type ClientFormValues = z.infer<typeof clientSchema>;
 export type ProductFormValues = z.infer<typeof productSchema>;
 export type CompanyFormValues = z.infer<typeof companySchema>;
+export type CompanyRegistrationFormValues = z.infer<typeof companyRegistrationSchema>;
 export type AppSettingsFormValues = z.infer<typeof appSettingsSchema>;

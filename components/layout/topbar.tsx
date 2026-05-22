@@ -1,8 +1,8 @@
 "use client";
 
-import { Menu, Search, Settings, UserRound } from "lucide-react";
+import { Building2, Menu, Search, Settings, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/field";
-import { useAppSettings } from "@/hooks/use-app-settings";
+import { clearSelectedCompany, useAppSettings } from "@/hooks/use-app-settings";
 import { mainNavigation } from "@/services/modules";
 
 export function Topbar() {
@@ -26,6 +26,14 @@ export function Topbar() {
             <p className="text-sm font-semibold text-slate-900">{company.nombre_empresa}</p>
             <p className="text-xs text-slate-500">{profile.nombre}</p>
           </div>
+          <button
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition hover:bg-slate-100"
+            aria-label="Cambiar empresa"
+            onClick={clearSelectedCompany}
+            title="Cambiar empresa"
+          >
+            <Building2 className="h-5 w-5" />
+          </button>
           <a
             href="/configuracion"
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 transition hover:bg-slate-100"

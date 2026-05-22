@@ -54,11 +54,25 @@ export function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p className="font-semibold text-slate-950">{company.nombre_empresa}</p>
+            <p className="text-slate-500">{company.razon_social}</p>
+            <p className="text-slate-500">NIT {company.nit}</p>
             <p className="text-slate-500">{company.identificacion}</p>
             <p className="text-slate-500">{company.email}</p>
             <p className="text-slate-500">
               {company.direccion}, {company.ciudad}
             </p>
+            <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600">
+              <p className="font-medium text-slate-800">Actividad economica</p>
+              <p className="mt-1">{company.actividad_economica}</p>
+            </div>
+            <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600">
+              <p className="font-medium text-slate-800">Responsabilidades fiscales</p>
+              <p className="mt-1">{company.responsabilidades_fiscales}</p>
+            </div>
+            <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600">
+              <p className="font-medium text-slate-800">Tributos</p>
+              <p className="mt-1">{company.tributos}</p>
+            </div>
           </CardContent>
         </Card>
       </div>

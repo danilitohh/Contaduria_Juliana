@@ -29,12 +29,20 @@ export interface Profile extends BaseRecord {
 export interface CompanySettings extends BaseRecord {
   nombre_empresa: string;
   logo_url?: string;
+  nit: string;
+  razon_social: string;
+  tipo_razon_social: string;
+  tipo_identificacion: string;
   identificacion: string;
+  digito_verificacion: string;
   email: string;
   telefono: string;
   direccion: string;
   ciudad: string;
   pais: string;
+  actividad_economica: string;
+  responsabilidades_fiscales: string;
+  tributos: string;
   moneda: string;
   impuesto_default: number;
   prefijo_factura: string;
