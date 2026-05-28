@@ -1,5 +1,5 @@
-import { ManagementPage } from "@/components/modules/management-page";
+import { InvoicesPage } from "@/components/modules/invoices-page";
 
 export default function FacturasPage() {
-  return <ManagementPage moduleKey="facturas" />;
+  return <InvoicesPage />;
 }
