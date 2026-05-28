@@ -21,6 +21,13 @@ import { roundMoney } from "@/lib/calculations/business";
 type InvoiceKind = "venta" | "compra";
 type LineKind = "producto" | "gasto";
 
+interface AiuConfig {
+  applies: boolean;
+  administracionPorcentaje: number;
+  imprevistoPorcentaje: number;
+  utilidadPorcentaje: number;
+}
+
 interface InvoiceLine {
   id: string;
   lineKind: LineKind;
@@ -52,6 +59,13 @@ interface InvoiceRecord {
   subtotal: number;
   ivaTotal: number;
   retencionTotal: number;
+  aiuAplica: boolean;
+  aiuAdministracionPorcentaje: number;
+  aiuImprevistoPorcentaje: number;
+  aiuUtilidadPorcentaje: number;
+  aiuAdministracionTotal: number;
+  aiuImprevistoTotal: number;
+  aiuUtilidadTotal: number;
   total: number;
 }
 
@@ -68,30 +82,60 @@ interface DraftLine {
 const demoDate = "2026-05-21";
 const paymentOptions = ["efectivo", "transferencia", "tarjeta", "credito"];
 const expenseOptions = ["Inventario", "Logistica", "Software", "Servicios", "Hardware", "Otro gasto"];
+const defaultAiuConfig: AiuConfig = {
+  applies: false,
+  administracionPorcentaje: 10,
+  imprevistoPorcentaje: 5,
+  utilidadPorcentaje: 5,
+};
 
 function lineSubtotal(line: InvoiceLine) {
   return roundMoney(line.cantidad * line.valorUnitario);
 }
 
-function lineIva(line: InvoiceLine) {
-  return roundMoney(lineSubtotal(line) * (line.ivaPorcentaje / 100));
+function aiuAmounts(subtotal: number, aiu: AiuConfig) {
+  if (!aiu.applies) {
+    return {
+      aiuAdministracionTotal: 0,
+      aiuImprevistoTotal: 0,
+      aiuUtilidadTotal: 0,
+    };
+  }
+
+  return {
+    aiuAdministracionTotal: roundMoney(subtotal * (aiu.administracionPorcentaje / 100)),
+    aiuImprevistoTotal: roundMoney(subtotal * (aiu.imprevistoPorcentaje / 100)),
+    aiuUtilidadTotal: roundMoney(subtotal * (aiu.utilidadPorcentaje / 100)),
+  };
+}
+
+function lineIva(line: InvoiceLine, aiu = defaultAiuConfig) {
+  const base = aiu.applies ? lineSubtotal(line) * (aiu.utilidadPorcentaje / 100) : lineSubtotal(line);
+
+  return roundMoney(base * (line.ivaPorcentaje / 100));
 }
 
 function lineRetencion(line: InvoiceLine) {
   return roundMoney(lineSubtotal(line) * (line.retencionPorcentaje / 100));
 }
 
-function lineTotal(line: InvoiceLine) {
-  return roundMoney(lineSubtotal(line) + lineIva(line) - lineRetencion(line));
+function lineTotal(line: InvoiceLine, aiu = defaultAiuConfig) {
+  const subtotal = lineSubtotal(line);
+  const lineAiu = aiuAmounts(subtotal, aiu);
+  const aiuTotal = lineAiu.aiuAdministracionTotal + lineAiu.aiuImprevistoTotal + lineAiu.aiuUtilidadTotal;
+
+  return roundMoney(subtotal + aiuTotal + lineIva(line, aiu) - lineRetencion(line));
 }
 
-function calculateTotals(lines: InvoiceLine[]) {
+function calculateTotals(lines: InvoiceLine[], aiu = defaultAiuConfig) {
   const subtotal = roundMoney(lines.reduce((sum, line) => sum + lineSubtotal(line), 0));
-  const ivaTotal = roundMoney(lines.reduce((sum, line) => sum + lineIva(line), 0));
+  const aiuTotals = aiuAmounts(subtotal, aiu);
+  const ivaTotal = roundMoney(lines.reduce((sum, line) => sum + lineIva(line, aiu), 0));
   const retencionTotal = roundMoney(lines.reduce((sum, line) => sum + lineRetencion(line), 0));
-  const total = roundMoney(subtotal + ivaTotal - retencionTotal);
+  const aiuTotal = aiuTotals.aiuAdministracionTotal + aiuTotals.aiuImprevistoTotal + aiuTotals.aiuUtilidadTotal;
+  const total = roundMoney(subtotal + aiuTotal + ivaTotal - retencionTotal);
 
-  return { subtotal, ivaTotal, retencionTotal, total };
+  return { subtotal, ivaTotal, retencionTotal, ...aiuTotals, total };
 }
 
 function productPrice(product: Product, kind: InvoiceKind) {
@@ -135,6 +179,13 @@ function seedSales(): InvoiceRecord[] {
     subtotal: invoice.subtotal,
     ivaTotal: invoice.impuesto_total,
     retencionTotal: 0,
+    aiuAplica: false,
+    aiuAdministracionPorcentaje: 0,
+    aiuImprevistoPorcentaje: 0,
+    aiuUtilidadPorcentaje: 0,
+    aiuAdministracionTotal: 0,
+    aiuImprevistoTotal: 0,
+    aiuUtilidadTotal: 0,
     total: invoice.total,
   }));
 }
@@ -177,6 +228,13 @@ function seedPurchases(): InvoiceRecord[] {
       subtotal,
       ivaTotal,
       retencionTotal,
+      aiuAplica: false,
+      aiuAdministracionPorcentaje: 0,
+      aiuImprevistoPorcentaje: 0,
+      aiuUtilidadPorcentaje: 0,
+      aiuAdministracionTotal: 0,
+      aiuImprevistoTotal: 0,
+      aiuUtilidadTotal: 0,
       total: roundMoney(subtotal + ivaTotal - retencionTotal),
     };
   });
@@ -228,6 +286,10 @@ export function InvoicesPage() {
   const [notas, setNotas] = useState("");
   const [draftLine, setDraftLine] = useState<DraftLine>(() => emptyDraftLine("venta"));
   const [lines, setLines] = useState<InvoiceLine[]>([]);
+  const [aplicaAiu, setAplicaAiu] = useState(false);
+  const [aiuAdministracion, setAiuAdministracion] = useState(defaultAiuConfig.administracionPorcentaje);
+  const [aiuImprevisto, setAiuImprevisto] = useState(defaultAiuConfig.imprevistoPorcentaje);
+  const [aiuUtilidad, setAiuUtilidad] = useState(defaultAiuConfig.utilidadPorcentaje);
   const [query, setQuery] = useState("");
 
   const parties = activeKind === "venta" ? clients : suppliers;
@@ -239,7 +301,16 @@ export function InvoicesPage() {
     return [row.numeroInterno, row.numeroExterno, row.partyName, row.partyDocument, row.estado]
       .some((value) => value.toLowerCase().includes(normalized));
   });
-  const formTotals = useMemo(() => calculateTotals(lines), [lines]);
+  const aiuConfig = useMemo<AiuConfig>(
+    () => ({
+      applies: activeKind === "venta" && aplicaAiu,
+      administracionPorcentaje: Math.max(0, Number(aiuAdministracion) || 0),
+      imprevistoPorcentaje: Math.max(0, Number(aiuImprevisto) || 0),
+      utilidadPorcentaje: Math.max(0, Number(aiuUtilidad) || 0),
+    }),
+    [activeKind, aplicaAiu, aiuAdministracion, aiuImprevisto, aiuUtilidad],
+  );
+  const formTotals = useMemo(() => calculateTotals(lines, aiuConfig), [aiuConfig, lines]);
   const numeroInterno = nextInternalNumber(activeKind, rows);
   const metrics = useMemo(() => {
     const scopedRows = rows.filter((row) => row.kind === activeKind);
@@ -261,6 +332,10 @@ export function InvoicesPage() {
     setNotas("");
     setDraftLine(emptyDraftLine(kind));
     setLines([]);
+    setAplicaAiu(false);
+    setAiuAdministracion(defaultAiuConfig.administracionPorcentaje);
+    setAiuImprevisto(defaultAiuConfig.imprevistoPorcentaje);
+    setAiuUtilidad(defaultAiuConfig.utilidadPorcentaje);
     setQuery("");
   }
 
@@ -312,7 +387,7 @@ export function InvoicesPage() {
   function saveInvoice() {
     if (!currentParty || !lines.length) return;
 
-    const totals = calculateTotals(lines);
+    const totals = calculateTotals(lines, aiuConfig);
     const record: InvoiceRecord = {
       id: `${activeKind}-${idCounter.current}`,
       kind: activeKind,
@@ -329,6 +404,10 @@ export function InvoicesPage() {
       metodoPago,
       notas,
       lines,
+      aiuAplica: aiuConfig.applies,
+      aiuAdministracionPorcentaje: aiuConfig.applies ? aiuConfig.administracionPorcentaje : 0,
+      aiuImprevistoPorcentaje: aiuConfig.applies ? aiuConfig.imprevistoPorcentaje : 0,
+      aiuUtilidadPorcentaje: aiuConfig.applies ? aiuConfig.utilidadPorcentaje : 0,
       ...totals,
     };
 
@@ -340,6 +419,10 @@ export function InvoicesPage() {
     setNotas("");
     setDraftLine(emptyDraftLine(activeKind));
     setLines([]);
+    setAplicaAiu(false);
+    setAiuAdministracion(defaultAiuConfig.administracionPorcentaje);
+    setAiuImprevisto(defaultAiuConfig.imprevistoPorcentaje);
+    setAiuUtilidad(defaultAiuConfig.utilidadPorcentaje);
     setShowForm(false);
   }
 
@@ -467,6 +550,54 @@ export function InvoicesPage() {
               </div>
             </div>
 
+            {activeKind === "venta" ? (
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={aplicaAiu}
+                      onChange={(event) => setAplicaAiu(event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+                    />
+                    Aplica AIU
+                  </label>
+                  <div className="grid w-full gap-3 md:grid-cols-3 lg:max-w-2xl">
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      Administracion %
+                      <Input
+                        type="number"
+                        min={0}
+                        value={aiuAdministracion}
+                        disabled={!aplicaAiu}
+                        onChange={(event) => setAiuAdministracion(Number(event.target.value))}
+                      />
+                    </label>
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      Imprevisto %
+                      <Input
+                        type="number"
+                        min={0}
+                        value={aiuImprevisto}
+                        disabled={!aplicaAiu}
+                        onChange={(event) => setAiuImprevisto(Number(event.target.value))}
+                      />
+                    </label>
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      Utilidad %
+                      <Input
+                        type="number"
+                        min={0}
+                        value={aiuUtilidad}
+                        disabled={!aplicaAiu}
+                        onChange={(event) => setAiuUtilidad(Number(event.target.value))}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             <div className="rounded-md border border-slate-200 bg-white p-4">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
                 <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -573,12 +704,12 @@ export function InvoicesPage() {
                           <td className="px-4 py-3 text-slate-700">{line.cantidad}</td>
                           <td className="px-4 py-3 text-slate-700">{formatCurrency(line.valorUnitario)}</td>
                           <td className="px-4 py-3 text-slate-700">
-                            {line.ivaPorcentaje}% / {formatCurrency(lineIva(line))}
+                            {line.ivaPorcentaje}% / {formatCurrency(lineIva(line, aiuConfig))}
                           </td>
                           <td className="px-4 py-3 text-slate-700">
                             {line.retencionPorcentaje}% / {formatCurrency(lineRetencion(line))}
                           </td>
-                          <td className="px-4 py-3 font-semibold text-slate-900">{formatCurrency(lineTotal(line))}</td>
+                          <td className="px-4 py-3 font-semibold text-slate-900">{formatCurrency(lineTotal(line, aiuConfig))}</td>
                           <td className="px-4 py-3">
                             <div className="flex justify-end">
                               <Button size="icon" variant="ghost" aria-label="Quitar linea" onClick={() => removeLine(line.id)}>
@@ -602,8 +733,24 @@ export function InvoicesPage() {
                     <span>Subtotal</span>
                     <span className="font-medium text-slate-900">{formatCurrency(formTotals.subtotal)}</span>
                   </div>
+                  {aiuConfig.applies ? (
+                    <>
+                      <div className="flex justify-between text-slate-600">
+                        <span>AIU administracion ({aiuConfig.administracionPorcentaje}%)</span>
+                        <span className="font-medium text-slate-900">{formatCurrency(formTotals.aiuAdministracionTotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-600">
+                        <span>AIU imprevisto ({aiuConfig.imprevistoPorcentaje}%)</span>
+                        <span className="font-medium text-slate-900">{formatCurrency(formTotals.aiuImprevistoTotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-600">
+                        <span>AIU utilidad ({aiuConfig.utilidadPorcentaje}%)</span>
+                        <span className="font-medium text-slate-900">{formatCurrency(formTotals.aiuUtilidadTotal)}</span>
+                      </div>
+                    </>
+                  ) : null}
                   <div className="flex justify-between text-slate-600">
-                    <span>IVA calculado</span>
+                    <span>{aiuConfig.applies ? "IVA sobre utilidad" : "IVA calculado"}</span>
                     <span className="font-medium text-slate-900">{formatCurrency(formTotals.ivaTotal)}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
