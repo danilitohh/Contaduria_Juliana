@@ -27,17 +27,38 @@ interface PdfDocument {
   legalNotice?: string;
 }
 
+function addCompanyLogo(doc: jsPDF, logoUrl?: string) {
+  if (!logoUrl?.startsWith("data:image/png")) return false;
+
+  try {
+    const image = doc.getImageProperties(logoUrl);
+    const maxWidth = 42;
+    const maxHeight = 38;
+    const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+    const width = image.width * scale;
+    const height = image.height * scale;
+
+    doc.setFillColor("#ffffff");
+    doc.roundedRect(42, 18, 54, 48, 4, 4, "F");
+    doc.addImage(logoUrl, "PNG", 42 + (54 - width) / 2, 18 + (48 - height) / 2, width, height);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function addHeader(doc: jsPDF, company: CompanySettings, title: string, number: string) {
   doc.setFillColor(company.color_marca || "#0f766e");
   doc.rect(0, 0, 595, 84, "F");
+  const textX = addCompanyLogo(doc, company.logo_url) ? 114 : 42;
   doc.setTextColor("#ffffff");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
-  doc.text(company.nombre_empresa, 42, 36);
+  doc.text(company.nombre_empresa, textX, 36);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(`${company.identificacion} | ${company.email} | ${company.telefono}`, 42, 56);
-  doc.text(`${company.direccion}, ${company.ciudad}, ${company.pais}`, 42, 70);
+  doc.text(`${company.identificacion} | ${company.email} | ${company.telefono}`, textX, 56);
+  doc.text(`${company.direccion}, ${company.ciudad}, ${company.pais}`, textX, 70);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.text(title, 430, 36);

@@ -48,33 +48,40 @@ function createFormValues(
 }
 
 function createRecordDefaults(moduleKey: ModuleKey) {
-  if (moduleKey === "clientes") {
-    return {
-      departamento: "",
-      pais: "Colombia",
+  if (moduleKey === "clientes" || moduleKey === "proveedores") {
+    const contactDefaults = {
       notas: "",
       saldo_pendiente: 0,
+    };
+
+    if (moduleKey === "proveedores") return contactDefaults;
+
+    return {
+      ...contactDefaults,
+      departamento: "",
+      pais: "Colombia",
     };
   }
 
   return {};
 }
 
-function createClientMetrics(rows: Array<Record<string, unknown>>) {
+function createContactMetrics(moduleKey: ModuleKey, rows: Array<Record<string, unknown>>) {
   const cities = rows
     .map((row) => String(row.ciudad ?? "").trim())
     .filter(Boolean);
+  const isSupplier = moduleKey === "proveedores";
 
   return [
     {
       label: "Activos",
       value: String(rows.filter((row) => row.estado === "activo").length),
-      helper: "Clientes con relacion vigente",
+      helper: isSupplier ? "Proveedores disponibles" : "Clientes con relacion vigente",
     },
     {
       label: "Saldo pendiente",
       value: formatCurrency(rows.reduce((sum, row) => sum + Number(row.saldo_pendiente ?? 0), 0)),
-      helper: "Por cobrar asociado",
+      helper: isSupplier ? "Por pagar asociado" : "Por cobrar asociado",
     },
     {
       label: "Ciudades",
@@ -131,7 +138,8 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
     resolver: config.formSchema ? zodResolver(config.formSchema as never) : undefined,
     defaultValues: defaults,
   });
-  const metrics = config.key === "clientes" ? createClientMetrics(rows) : config.metrics;
+  const metrics =
+    config.key === "clientes" || config.key === "proveedores" ? createContactMetrics(config.key, rows) : config.metrics;
 
   const filteredRows = rows.filter((row) => {
     const searchOk = matchesSearch(row, config.searchKeys, query);

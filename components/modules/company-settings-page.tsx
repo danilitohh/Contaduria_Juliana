@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, Palette, RotateCcw, Save, UserRound } from "lucide-react";
+import { Building2, ImageIcon, Palette, RotateCcw, Save, Trash2, Upload, UserRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { addDiagnostic } from "@/components/diagnostics/diagnostics-store";
 import { resetAppSettings, saveAppSettings, useAppSettings } from "@/hooks/use-app-settings";
 import { appSettingsSchema, type AppSettingsFormValues } from "@/lib/validations/schemas";
 
+const maxLogoSize = 800 * 1024;
+
 function errorText(message: unknown) {
   return message ? <span className="block text-xs text-red-600">{String(message)}</span> : null;
 }
@@ -18,7 +20,10 @@ function errorText(message: unknown) {
 export function CompanySettingsPage() {
   const [saved, setSaved] = useState(false);
   const [restored, setRestored] = useState(false);
+  const [logoError, setLogoError] = useState("");
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const settings = useAppSettings();
+  const [logoUrl, setLogoUrl] = useState(() => settings.company.logo_url ?? "");
   const form = useForm<AppSettingsFormValues>({
     resolver: zodResolver(appSettingsSchema) as never,
     defaultValues: {
@@ -59,6 +64,7 @@ export function CompanySettingsPage() {
       company: nextSettings.company,
       profile: nextSettings.profile,
     });
+    setLogoUrl(nextSettings.company.logo_url ?? "");
 
     addDiagnostic({
       level: "info",
@@ -69,12 +75,52 @@ export function CompanySettingsPage() {
     notifySaved("saved");
   }
 
+  function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "image/png") {
+      setLogoError("Selecciona un archivo PNG.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > maxLogoSize) {
+      setLogoError("Usa un PNG de maximo 800 KB.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        setLogoError("No se pudo leer el logo.");
+        return;
+      }
+
+      form.setValue("company.logo_url", reader.result, { shouldDirty: true, shouldValidate: true });
+      setLogoUrl(reader.result);
+      setLogoError("");
+    };
+    reader.onerror = () => setLogoError("No se pudo leer el logo.");
+    reader.readAsDataURL(file);
+  }
+
+  function removeLogo() {
+    form.setValue("company.logo_url", "", { shouldDirty: true, shouldValidate: true });
+    setLogoUrl("");
+    setLogoError("");
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  }
+
   function restoreDemoSettings() {
     const nextSettings = resetAppSettings();
     form.reset({
       company: nextSettings.company,
       profile: nextSettings.profile,
     });
+    setLogoUrl(nextSettings.company.logo_url ?? "");
+    if (logoInputRef.current) logoInputRef.current.value = "";
 
     addDiagnostic({
       level: "info",
@@ -312,6 +358,42 @@ export function CompanySettingsPage() {
                 <Input type="color" className="h-12 p-1" {...form.register("company.color_marca")} />
                 {errorText(errors.company?.color_marca?.message)}
               </label>
+              <input type="hidden" {...form.register("company.logo_url")} />
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <div className="flex gap-3">
+                  <div
+                    className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white bg-contain bg-center bg-no-repeat text-slate-400"
+                    style={logoUrl ? { backgroundImage: `url(${logoUrl})` } : undefined}
+                  >
+                    {logoUrl ? null : <ImageIcon className="h-7 w-7" />}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <p className="text-sm font-medium text-slate-700">Logo PNG</p>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png"
+                      className="sr-only"
+                      aria-label="Logo PNG"
+                      onChange={handleLogoChange}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" variant="secondary" size="sm" onClick={() => logoInputRef.current?.click()}>
+                        <Upload className="h-4 w-4" />
+                        Cargar PNG
+                      </Button>
+                      {logoUrl ? (
+                        <Button type="button" variant="ghost" size="sm" onClick={removeLogo}>
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                          Quitar
+                        </Button>
+                      ) : null}
+                    </div>
+                    {logoError ? <span className="block text-xs text-red-600">{logoError}</span> : null}
+                    {errorText(errors.company?.logo_url?.message)}
+                  </div>
+                </div>
+              </div>
               <label className="space-y-2 text-sm font-medium text-slate-700">
                 Terminos
                 <Textarea {...form.register("company.terminos_default")} />

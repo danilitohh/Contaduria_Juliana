@@ -20,6 +20,7 @@ export const supplierSchema = clientSchema.pick({
   numero_documento: true,
   email: true,
   telefono: true,
+  direccion: true,
   ciudad: true,
   estado: true,
 });
@@ -58,6 +59,7 @@ export const paymentSchema = z.object({
 
 export const companySchema = z.object({
   nombre_empresa: requiredText,
+  logo_url: z.string().max(1_200_000, "El logo es demasiado pesado").optional(),
   nit: z.string().min(4, "Ingresa un NIT valido"),
   razon_social: requiredText,
   tipo_razon_social: requiredText,
