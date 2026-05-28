@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/field";
 import { RecordsTable } from "@/components/tables/records-table";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import {
   downloadInvoicePdf,
   downloadPayrollPdf,
@@ -37,6 +37,51 @@ function createDefaultValues(fields: FormField[]) {
       return [field.name, ""];
     }),
   );
+}
+
+function createFormValues(
+  fields: FormField[],
+  row: Record<string, unknown>,
+  defaults: Record<string, unknown>,
+) {
+  return Object.fromEntries(fields.map((field) => [field.name, row[field.name] ?? defaults[field.name] ?? ""]));
+}
+
+function createRecordDefaults(moduleKey: ModuleKey) {
+  if (moduleKey === "clientes") {
+    return {
+      departamento: "",
+      pais: "Colombia",
+      notas: "",
+      saldo_pendiente: 0,
+    };
+  }
+
+  return {};
+}
+
+function createClientMetrics(rows: Array<Record<string, unknown>>) {
+  const cities = rows
+    .map((row) => String(row.ciudad ?? "").trim())
+    .filter(Boolean);
+
+  return [
+    {
+      label: "Activos",
+      value: String(rows.filter((row) => row.estado === "activo").length),
+      helper: "Clientes con relacion vigente",
+    },
+    {
+      label: "Saldo pendiente",
+      value: formatCurrency(rows.reduce((sum, row) => sum + Number(row.saldo_pendiente ?? 0), 0)),
+      helper: "Por cobrar asociado",
+    },
+    {
+      label: "Ciudades",
+      value: String(new Set(cities).size),
+      helper: "Cobertura comercial",
+    },
+  ];
 }
 
 function matchesSearch(row: Record<string, unknown>, keys: string[], query: string) {
@@ -78,6 +123,7 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
     config.rows.map((row) => row as Record<string, unknown>),
   );
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const defaults = useMemo(() => createDefaultValues(config.formFields), [config.formFields]);
@@ -85,6 +131,7 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
     resolver: config.formSchema ? zodResolver(config.formSchema as never) : undefined,
     defaultValues: defaults,
   });
+  const metrics = config.key === "clientes" ? createClientMetrics(rows) : config.metrics;
 
   const filteredRows = rows.filter((row) => {
     const searchOk = matchesSearch(row, config.searchKeys, query);
@@ -96,19 +143,61 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
     return searchOk && filtersOk;
   });
 
-  function submit(values: Record<string, unknown>) {
-    setRows((current) => [
-      {
-        ...values,
-        id: `${config.key}-${current.length + 1}`,
-        user_id: "demo-user",
-        created_at: DEMO_TIMESTAMP,
-        updated_at: DEMO_TIMESTAMP,
-      },
-      ...current,
-    ]);
+  function openCreateForm() {
+    if (showForm && !editingId) {
+      form.reset(defaults);
+      setShowForm(false);
+      return;
+    }
+
+    setEditingId(null);
+    form.reset(defaults);
+    setShowForm(true);
+  }
+
+  function cancelForm() {
+    setEditingId(null);
     form.reset(defaults);
     setShowForm(false);
+  }
+
+  function submit(values: Record<string, unknown>) {
+    if (editingId) {
+      setRows((current) =>
+        current.map((row) =>
+          String(row.id) === editingId ? { ...row, ...values, updated_at: DEMO_TIMESTAMP } : row,
+        ),
+      );
+    } else {
+      setRows((current) => [
+        {
+          ...createRecordDefaults(config.key),
+          ...values,
+          id: `${config.key}-${Date.now()}`,
+          user_id: "demo-user",
+          created_at: DEMO_TIMESTAMP,
+          updated_at: DEMO_TIMESTAMP,
+        },
+        ...current,
+      ]);
+    }
+
+    setEditingId(null);
+    form.reset(defaults);
+    setShowForm(false);
+  }
+
+  function edit(row: Record<string, unknown>) {
+    setEditingId(String(row.id));
+    form.reset(createFormValues(config.formFields, row, defaults));
+    setShowForm(true);
+  }
+
+  function remove(id: string) {
+    if (!window.confirm("Eliminar este registro?")) return;
+
+    setRows((current) => current.filter((row) => String(row.id) !== id));
+    if (editingId === id) cancelForm();
   }
 
   function duplicate(row: Record<string, unknown>) {
@@ -164,7 +253,7 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
             ) : null}
           </div>
           {config.formFields.length ? (
-            <Button onClick={() => setShowForm((value) => !value)}>
+            <Button onClick={openCreateForm}>
               <Plus className="h-4 w-4" />
               {config.createLabel}
             </Button>
@@ -173,7 +262,7 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-3">
-        {config.metrics.map((metric) => (
+        {metrics.map((metric) => (
           <Card key={metric.label}>
             <CardContent>
               <p className="text-sm text-slate-500">{metric.label}</p>
@@ -199,8 +288,8 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
                 );
               })}
               <div className="flex items-end gap-2 md:col-span-2 xl:col-span-3">
-                <Button type="submit">Guardar</Button>
-                <Button variant="secondary" onClick={() => setShowForm(false)}>
+                <Button type="submit">{editingId ? "Actualizar" : "Guardar"}</Button>
+                <Button variant="secondary" onClick={cancelForm}>
                   Cancelar
                 </Button>
               </div>
@@ -247,7 +336,8 @@ export function ManagementPage({ moduleKey, compact = false }: ManagementPagePro
           <RecordsTable
             config={config}
             rows={filteredRows}
-            onDelete={(id) => setRows((current) => current.filter((row) => String(row.id) !== id))}
+            onEdit={config.formFields.length ? edit : undefined}
+            onDelete={remove}
             onDuplicate={duplicate}
             onPdf={config.pdf ? downloadPdf : undefined}
           />

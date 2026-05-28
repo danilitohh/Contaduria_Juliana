@@ -8,12 +8,13 @@ import { formatTableValue, type ModuleDefinition } from "@/services/modules";
 interface RecordsTableProps {
   config: ModuleDefinition;
   rows: Array<Record<string, unknown>>;
+  onEdit?: (row: Record<string, unknown>) => void;
   onDelete?: (id: string) => void;
   onDuplicate?: (row: Record<string, unknown>) => void;
   onPdf?: (row: Record<string, unknown>) => void;
 }
 
-export function RecordsTable({ config, rows, onDelete, onDuplicate, onPdf }: RecordsTableProps) {
+export function RecordsTable({ config, rows, onEdit, onDelete, onDuplicate, onPdf }: RecordsTableProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
       <div className="overflow-x-auto">
@@ -42,9 +43,11 @@ export function RecordsTable({ config, rows, onDelete, onDuplicate, onPdf }: Rec
                 ))}
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
-                    <Button size="icon" variant="ghost" aria-label="Editar registro">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    {onEdit ? (
+                      <Button size="icon" variant="ghost" aria-label="Editar registro" onClick={() => onEdit(row)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) : null}
                     {onPdf ? (
                       <Button size="icon" variant="ghost" aria-label="Descargar PDF" onClick={() => onPdf(row)}>
                         <FileDown className="h-4 w-4" />

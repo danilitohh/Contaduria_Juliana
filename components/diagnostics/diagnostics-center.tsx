@@ -28,6 +28,7 @@ import { cn, formatDate } from "@/lib/utils";
 
 let listenersInstalled = false;
 const previousPathKey = "nexo_previous_path";
+const emptyDiagnosticsSnapshot: DiagnosticEntry[] = [];
 
 function levelIcon(level: DiagnosticLevel) {
   if (level === "error") return AlertTriangle;
@@ -186,7 +187,7 @@ export function DiagnosticsCenter({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const entries = useSyncExternalStore(subscribeDiagnostics, getDiagnosticsSnapshot, () => []);
+  const entries = useSyncExternalStore(subscribeDiagnostics, getDiagnosticsSnapshot, () => emptyDiagnosticsSnapshot);
 
   useEffect(() => {
     installDiagnosticsListeners();

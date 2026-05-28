@@ -9,6 +9,7 @@ export const clientSchema = z.object({
   numero_documento: z.string().min(4, "Ingresa un documento valido"),
   email: z.string().email("Correo invalido"),
   telefono: z.string().min(7, "Ingresa un telefono"),
+  direccion: requiredText,
   ciudad: requiredText,
   estado: z.enum(["activo", "inactivo"]),
 });
