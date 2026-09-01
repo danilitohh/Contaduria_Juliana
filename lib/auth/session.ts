@@ -13,7 +13,7 @@ export function isSecureRequest(request: Request) {
 }
 
 export function getAdminEmail() {
-  return process.env.NEXO_ADMIN_EMAIL ?? "julianaz101@hotmail.com";
+  return process.env.NEXO_ADMIN_EMAIL?.trim() || "julianaz101@hotmail.com";
 }
 
 export function getAdminUsername() {
@@ -31,7 +31,9 @@ function getAdminPassword() {
 }
 
 export function hasAuthConfig() {
-  return Boolean(getAdminEmail().trim() && getAdminPassword());
+  const hasIdentifier = Boolean(getAdminEmail().trim() || getAdminUsername().trim());
+
+  return hasIdentifier && Boolean(getAdminPassword());
 }
 
 export function hasValidSession(cookieValue?: string) {
@@ -44,7 +46,7 @@ export function verifyCredentials(identifier: string, password: string) {
   const allowedUsername = getAdminUsername().trim().toLowerCase();
   const allowedPassword = getAdminPassword();
 
-  if (!allowedEmail || !allowedPassword) {
+  if ((!allowedEmail && !allowedUsername) || !allowedPassword) {
     return false;
   }
 
