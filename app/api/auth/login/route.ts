@@ -10,14 +10,14 @@ import {
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const email = String(formData.get("email") ?? "");
+  const identifier = String(formData.get("identifier") ?? formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
   if (!hasAuthConfig()) {
     return NextResponse.redirect(new URL("/login?error=config", request.url), 303);
   }
 
-  if (!verifyCredentials(email, password)) {
+  if (!verifyCredentials(identifier, password)) {
     return NextResponse.redirect(new URL("/login?error=credentials", request.url), 303);
   }
 

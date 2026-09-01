@@ -47,10 +47,11 @@ La app esta configurada para una sola cuenta administrativa. Define estas variab
 
 ```bash
 NEXO_ADMIN_EMAIL=
+NEXO_ADMIN_USERNAME=
 NEXO_ADMIN_PASSWORD=
 ```
 
-La sesion se firma internamente a partir de esas credenciales. El registro esta deshabilitado y `/register` no crea usuarios.
+El inicio de sesion acepta el correo o el nombre de usuario configurado. Si `NEXO_ADMIN_USERNAME` se deja vacio, se usa automaticamente la parte del correo anterior a `@`. La sesion se firma internamente a partir de esas credenciales. El registro esta deshabilitado y `/register` no crea usuarios.
 
 El esquema usa `user_id` en cada tabla y RLS para que cada usuario solo vea y modifique sus propios datos.
 

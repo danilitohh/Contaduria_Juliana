@@ -28,7 +28,7 @@ export default async function LoginPage({
 
         {error === "credentials" ? (
           <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-            Correo o contrasena incorrectos.
+            Correo, usuario o contrasena incorrectos.
           </div>
         ) : null}
         {error === "config" ? (
@@ -39,8 +39,14 @@ export default async function LoginPage({
 
         <form action="/api/auth/login" method="post" className="space-y-4">
           <label className="space-y-2 text-sm font-medium text-slate-700">
-            Correo
-            <Input type="email" name="email" defaultValue={adminEmail} autoComplete="email" required />
+            Correo o usuario
+            <Input
+              type="text"
+              name="identifier"
+              defaultValue={adminEmail}
+              autoComplete="username"
+              required
+            />
           </label>
           <label className="space-y-2 text-sm font-medium text-slate-700">
             Contrasena
